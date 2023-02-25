@@ -30,11 +30,11 @@ namespace Sales.API.Data
         }
         private async Task CheckCategoriesAsync()
         {
-            if (!_contex.Countries.Any())
+            if (!_contex.Categories.Any())
             {
-                _contex.Countries.Add(new Country { Name = "Ropa" });
-                _contex.Countries.Add(new Country { Name = "Accesorios" });
-                _contex.Countries.Add(new Country { Name = "Electrodomesticos" });
+                _contex.Categories.Add(new Category { Name = "Ropa" });
+                _contex.Categories.Add(new Category { Name = "Accesorios" });
+                _contex.Categories.Add(new Category { Name = "Electrodomesticos" });
                 await _contex.SaveChangesAsync();
             }
         }
