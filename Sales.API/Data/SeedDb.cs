@@ -15,6 +15,7 @@ namespace Sales.API.Data
         {
             await _contex.Database.EnsureCreatedAsync();
             await CheckCountriesAsync();
+            await CheckCategoriesAsync();
         }
 
         private async Task CheckCountriesAsync()
@@ -24,6 +25,16 @@ namespace Sales.API.Data
                 _contex.Countries.Add(new Country { Name = "Colombia" });
                 _contex.Countries.Add(new Country { Name = "Peú" });
                 _contex.Countries.Add(new Country { Name = "México" });
+                await _contex.SaveChangesAsync();
+            }
+        }
+        private async Task CheckCategoriesAsync()
+        {
+            if (!_contex.Countries.Any())
+            {
+                _contex.Countries.Add(new Country { Name = "Ropa" });
+                _contex.Countries.Add(new Country { Name = "Accesorios" });
+                _contex.Countries.Add(new Country { Name = "Electrodomesticos" });
                 await _contex.SaveChangesAsync();
             }
         }
