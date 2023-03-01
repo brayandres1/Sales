@@ -1,117 +1,94 @@
-﻿using Sales.Shared.Entites;
+﻿using Microsoft.EntityFrameworkCore;
+using Sales.API.Services;
+using Sales.Shared.Entites;
+using Sales.Shared.Responses;
 
 namespace Sales.API.Data
 {
     public class SeedDb
     {
-        private readonly DataContext _contex;
+        private readonly DataContext _context;
+        private readonly IApiService _apiService;
 
-        public SeedDb(DataContext contex)
+        public SeedDb(DataContext context, IApiService apiService)
         {
-            _contex = contex;
+            _context = context;
+            _apiService = apiService;
         }
 
         public async Task SeedAsync()
         {
-            await _contex.Database.EnsureCreatedAsync();
+            await _context.Database.EnsureCreatedAsync();
             await CheckCountriesAsync();
             await CheckCategoriesAsync();
+        }
+        private async Task CheckCategoriesAsync()
+        {
+            if (!_context.Categories.Any())
+            {
+                _context.Categories.Add(new Category { Name = "Ropa" });
+                _context.Categories.Add(new Category { Name = "Accesorios" });
+                _context.Categories.Add(new Category { Name = "Electrodomesticos" });
+                await _context.SaveChangesAsync();
+            }
         }
 
         private async Task CheckCountriesAsync()
         {
-            if (!_contex.Countries.Any())
+            if (!_context.Countries.Any())
             {
-                _contex.Countries.Add(new Country 
+                Response responseCountries = await _apiService.GetListAsync<CountryResponse>("/v1", "/countries");
+                if (responseCountries.IsSuccess)
                 {
-                    Name = "Colombia", 
-                    States = new List<State>()
+                    List<CountryResponse> countries = (List<CountryResponse>)responseCountries.Result!;
+                    foreach (CountryResponse countryResponse in countries)
                     {
-                        new State()
+                        Country country = await _context.Countries!.FirstOrDefaultAsync(c => c.Name == countryResponse.Name!)!;
+                        if (country == null)
                         {
-                            Name = "Antioquia",
-                            Cities = new List<City>()
+                            country = new() { Name = countryResponse.Name!, States = new List<State>() };
+                            Response responseStates = await _apiService.GetListAsync<StateResponse>("/v1", $"/countries/{countryResponse.Iso2}/states");
+                            if (responseStates.IsSuccess)
                             {
-                                new City() { Name = "Medellín"},
-                                new City() { Name = "Itagui"},
-                                new City() { Name = "Envigado"},
-                                new City() { Name = "Bello"},
-                                new City() { Name = "Rionegro"},
+                                List<StateResponse> states = (List<StateResponse>)responseStates.Result!;
+                                foreach (StateResponse stateResponse in states!)
+                                {
+                                    State state = country.States!.FirstOrDefault(s => s.Name == stateResponse.Name!)!;
+                                    if (state == null)
+                                    {
+                                        state = new() { Name = stateResponse.Name!, Cities = new List<City>() };
+                                        Response responseCities = await _apiService.GetListAsync<CityResponse>("/v1", $"/countries/{countryResponse.Iso2}/states/{stateResponse.Iso2}/cities");
+                                        if (responseCities.IsSuccess)
+                                        {
+                                            List<CityResponse> cities = (List<CityResponse>)responseCities.Result!;
+                                            foreach (CityResponse cityResponse in cities)
+                                            {
+                                                if (cityResponse.Name == "Mosfellsbær" || cityResponse.Name == "Șăulița")
+                                                {
+                                                    continue;
+                                                }
+                                                City city = state.Cities!.FirstOrDefault(c => c.Name == cityResponse.Name!)!;
+                                                if (city == null)
+                                                {
+                                                    state.Cities.Add(new City() { Name = cityResponse.Name! });
+                                                }
+                                            }
+                                        }
+                                        if (state.CitiesNumber > 0)
+                                        {
+                                            country.States.Add(state);
+                                        }
+                                    }
+                                }
                             }
-                        },
-                        new State()
-                        {
-                            Name = "Bogotá",
-                            Cities= new List<City>()
+                            if (country.StatesNumber > 0)
                             {
-                                new City() { Name = "Usaquen" },
-                                new City() { Name = "Chapinero" },
-                                new City() { Name = "Santa fe" },
-                                new City() { Name = "Usme" },
-                                new City() { Name = "Bosa" },
+                                _context.Countries.Add(country);
+                                await _context.SaveChangesAsync();
                             }
-                        },
+                        }
                     }
-
-                });
-
-                _contex.Countries.Add(new Country 
-                { 
-                    Name = "Estados Unidos",
-                    States = new List<State>()
-                    {
-                        new State()
-                        {
-                            Name = "Florida",
-                            Cities = new List<City>()
-                            {
-                                new City() { Name = "Orlando"},
-                                new City() { Name = "Miami"},
-                                new City() { Name = "Tampa"},
-                                new City() { Name = "Fort Lauderdale"},
-                                new City() { Name = "Key West"},
-                            }
-                        },
-                        new State()
-                        {
-                            Name = "Texas",
-                            Cities= new List<City>()
-                            {
-                                new City() { Name = "Houston"},
-                                new City() { Name = "San Antonio"},
-                                new City() { Name = "Dallas"},
-                                new City() { Name = "Austin"},
-                                new City() { Name = "El paso"},
-                            }
-                        },
-                    }
-                
-                });
-                _contex.Countries.Add(new Country 
-                { 
-                    Name = "México",
-                    States= new List<State>()
-                    {
-                        new State() { Name = "Ciudad de México"},
-                        new State() { Name = "Chihuahua"},
-                        new State() { Name = "Monterrey"},
-                        new State() { Name = "Cancun"},
-                    },
-                
-                });
-
-
-                await _contex.SaveChangesAsync();
-            }
-        }
-        private async Task CheckCategoriesAsync()
-        {
-            if (!_contex.Categories.Any())
-            {
-                _contex.Categories.Add(new Category { Name = "Ropa" });
-                _contex.Categories.Add(new Category { Name = "Accesorios" });
-                _contex.Categories.Add(new Category { Name = "Electrodomesticos" });
-                await _contex.SaveChangesAsync();
+                }
             }
         }
     }
