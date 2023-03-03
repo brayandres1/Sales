@@ -29,7 +29,6 @@ namespace Sales.API.Data
                 _context.Categories.Add(new Category { Name = "Ropa" });
                 _context.Categories.Add(new Category { Name = "Accesorios" });
                 _context.Categories.Add(new Category { Name = "Televisores" });
-                _context.Categories.Add(new Category { Name = "Celulares" });
                 _context.Categories.Add(new Category { Name = "Mercado" });
                 _context.Categories.Add(new Category { Name = "Celulares" });
                 _context.Categories.Add(new Category { Name = "Computadores" });
