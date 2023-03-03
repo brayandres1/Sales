@@ -28,7 +28,23 @@ namespace Sales.API.Data
             {
                 _context.Categories.Add(new Category { Name = "Ropa" });
                 _context.Categories.Add(new Category { Name = "Accesorios" });
-                _context.Categories.Add(new Category { Name = "Electrodomesticos" });
+                _context.Categories.Add(new Category { Name = "Televisores" });
+                _context.Categories.Add(new Category { Name = "Celulares" });
+                _context.Categories.Add(new Category { Name = "Mercado" });
+                _context.Categories.Add(new Category { Name = "Celulares" });
+                _context.Categories.Add(new Category { Name = "Computadores" });
+                _context.Categories.Add(new Category { Name = "Lavadoras" });
+                _context.Categories.Add(new Category { Name = "Colchones" });
+                _context.Categories.Add(new Category { Name = "Horno" });
+                _context.Categories.Add(new Category { Name = "Gimnasio" });
+                _context.Categories.Add(new Category { Name = "Juguetes" });
+                _context.Categories.Add(new Category { Name = "Licores" });
+                _context.Categories.Add(new Category { Name = "Hogar" });
+                _context.Categories.Add(new Category { Name = "Consolas" });
+                _context.Categories.Add(new Category { Name = "Comedores" });
+                _context.Categories.Add(new Category { Name = "Escritorios" });
+                _context.Categories.Add(new Category { Name = "Accesorios de Baño" });
+                _context.Categories.Add(new Category { Name = "Accesorios de Cocina" });
                 await _context.SaveChangesAsync();
             }
         }
