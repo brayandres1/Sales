@@ -6,18 +6,22 @@
 <h3>Países</h3>
 <a class="btn btn-primary mb-3" href="/countries/create">Nuevo País</a>
 
-<Pagination CurrentPage="currentPage"
-            TotalPages="totalPages"
-            SelectedPage="SelectedPageAsync" />
+<div>
+    <Pagination CurrentPage="currentPage"
+                TotalPages="totalPages"
+                SelectedPage="SelectedPageAsync" />
+</div>
+
 
 
 <GenericList MyList="Countries">
     <Body>
         <table class="table table-striped">
             <thead>
-                <tr>       
+                <tr>
+                    <th style="width:260px">Nombre País</th>
                     <th style="width:220px">Estados / Departamentos</th>
-                    <th style="width:260px"></th>
+                    
                 </tr>
             </thead>
             <tbody>
@@ -42,6 +46,7 @@
         </table>
     </Body>
 </GenericList>
+
 
 @code {
     public List<Country>? Countries { get; set; }
