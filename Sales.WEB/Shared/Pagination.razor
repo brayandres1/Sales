@@ -3,9 +3,12 @@
 
         @foreach (var link in Links)
         {
-            <li @onclick=@(() => InternalSelectedPage(link)) style="cursor: pointer" class="page-item @(link.Enable ? null : "disabled") @(link.Enable ? "active" : null)">
-                <a class="page-link">@link.Text</a>
-            </li>
+            <div >
+                <li @onclick=@(() => InternalSelectedPage(link)) style="cursor: pointer" class="page-item @(link.Enable ? null : "disabled") @(link.Enable ? "active" : null)">
+                    <a class="page-link">@link.Text</a>
+                </li>
+            </div>
+            
         }
     </ul>
 </nav>
@@ -14,7 +17,7 @@
 @code {
     [Parameter] public int CurrentPage { get; set; } = 1;
     [Parameter] public int TotalPages { get; set; }
-    [Parameter] public int Radio { get; set; } = 9;
+    //[Parameter] public int Radio { get; set; } I do not use it
     [Parameter] public EventCallback<int> SelectedPage { get; set; }
     List<PageModel> Links = new();
 
@@ -31,18 +34,56 @@
                 Enable = previousLinkEnable
             });
 
+
+        var rangeMax = 10;
         for (int i = 1; i <= TotalPages; i++)
         {
-            if (i >= CurrentPage - Radio && i <= CurrentPage + Radio)
+            if (TotalPages > rangeMax) //When there are 10 pages or more
             {
-                Links.Add(new PageModel
-                    {
-                        Page = i,
-                        Enable = CurrentPage == i,
-                        Text = $"{i}"
-                    });
+                if (i <= rangeMax && CurrentPage <= rangeMax)   
+                {
+                    Links.Add(new PageModel
+                        {
+                            Page = i,
+                            Enable = CurrentPage == i,
+                            Text = $"{i}"
+
+                        });
+
+                }
+                if (i > CurrentPage - rangeMax && i <= CurrentPage && CurrentPage > rangeMax)
+                {
+                    Links.Add(new PageModel
+                        {
+                            Page = i,
+                            Enable = CurrentPage == i,
+                            Text = $"{i}"
+
+                        });
+
+                }
+
+                if (TotalPages <= rangeMax) //When there are 10 pages or less
+                {
+                    Links.Add(new PageModel
+                        {
+                            Page = i,
+                            Enable = CurrentPage == i,
+                            Text = $"{i}"
+
+                        });
+                }
+
             }
-        }
+            
+
+        }     
+
+            
+            
+
+            
+             
 
         var linkNextEnable = CurrentPage != TotalPages;
         var linkNextPage = (CurrentPage == TotalPages) ? TotalPages : CurrentPage + 1;
