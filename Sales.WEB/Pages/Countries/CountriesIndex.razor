@@ -12,8 +12,6 @@
                 SelectedPage="SelectedPageAsync" />
 </div>
 
-
-
 <GenericList MyList="Countries">
     <Body>
         <table class="table table-striped">
@@ -63,10 +61,9 @@
     {
         string url1 = $"api/countries?page={page}";
         string url2 = $"api/countries/totalPages";
-
-        var responseHppt = await repository.Get<List<Country>>(url1);
+        var responseHppt1 = await repository.Get<List<Country>>(url1);
         var responseHppt2 = await repository.Get<int>(url2);
-        Countries = responseHppt.Response!;
+        Countries = responseHppt1.Response!;
         totalPages = responseHppt2.Response!;
 
     }
