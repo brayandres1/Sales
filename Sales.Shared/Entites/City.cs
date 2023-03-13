@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Sales.Shared.Entites;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -20,5 +21,7 @@ namespace Sales.Shared.Entites
         public int StateId { get; set; }
 
         public State? State { get; set; }
+
+        public ICollection<User>? Users { get; set; }
     }
 }
