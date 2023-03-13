@@ -2,7 +2,16 @@
 
 <PageTitle>Index</PageTitle>
 
-<h1>!Hola extraño/a!</h1>
+<AuthorizeView Roles="Admin">
+    <Authorized>
+        <p>Hola, @context.User.Identity?.Name, estas autenticado y autorizado.</p>
+    </Authorized>
+    <NotAuthorized>
+        <p>No estas autorizado</p>
+    </NotAuthorized>
+
+</AuthorizeView>
+
 
 Pongase comodo y espereme tantico, porque la pagina web aun no esta terminada.
 <div>
