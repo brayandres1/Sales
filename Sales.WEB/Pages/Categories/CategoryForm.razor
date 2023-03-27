@@ -4,17 +4,16 @@
 
 <EditForm EditContext="editContext" OnValidSubmit="OnValidSubmit">
     <DataAnnotationsValidator/>
-    <div>
+    <div class="mb-3">
         <label>Categoria</label>
         <div>
             <InputText class="form-control" @bind-Value="@Category.Name" />
             <ValidationMessage For="@(() => Category.Name)" />
         </div>
     </div>
-    <button class="btn btn-primary" type="submit">Guardar Cambios</button>
-    <button class="btn btn-success" type="submit" @onclick="ReturnAction"> Regresar</button>
-
-</EditForm>
+        <button class="btn btn-primary" type="submit">Guardar Cambios</button>
+        <button class="btn btn-success" type="submit" @onclick="ReturnAction"> Regresar</button>        
+    </EditForm>
 
 @code {
     private EditContext editContext = null!;

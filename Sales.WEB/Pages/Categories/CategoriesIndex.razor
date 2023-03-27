@@ -4,59 +4,73 @@
 @inject SweetAlertService sweetAlertService
 @attribute [Authorize(Roles = "Admin")]
 
-<h3>Categorias</h3>
 
-<div class="mb-2" style="display: flex; flex-wrap:wrap; align-items: center;">
-    <div>
-        <a class="btn btn-primary" href="/countries/create">Nueva categoria</a>
-    </div>
-    <div class="mx-2">
-        <input style="width: 400px;" type="text" class="form-control" id="titulo" placeholder="Buscar categoria..." @bind-value="Filter" />
-    </div>
-    <div>
-        <button type="button" class="btn btn-outline-primary" @onclick="ApplyFilterAsync">Filtrar</button>
-        <button type="button" class="btn btn-outline-danger" @onclick="CleanFilterAsync">Limpiar</button>
-    </div>
-</div>
+@if (Categories is null)
+{
+    <div class="spinner" />
+}
+else
+{
+     <GenericList MyList="Categories">
+        <Body>
+            <div class="card">
+                <div class="card-header">
+                    <span>
+                        <i class="oi oi-list"></i> Castegorías
+                        <a class="btn btn-sm btn-primary float-end" @onclick=@(() => ShowModal())><i class="oi oi-plus"></i> Adicionar Categoría</a>
+                    </span>
+                </div>
+                <div class="card-body">
+                    <div class="mb-2" style="display: flex; flex-wrap:wrap; align-items: center;">
+                        <div>
+                            <input style="width: 400px;" type="text" class="form-control" id="titulo" placeholder="Buscar categoría..." @bind-value="Filter" />
+                        </div>
+                        <div class="mx-1">
+                            <button type="button" class="btn btn-outline-primary" @onclick="ApplyFilterAsync"><i class="oi oi-layers" /> Filtrar</button>
+                            <button type="button" class="btn btn-outline-danger" @onclick="CleanFilterAsync"><i class="oi oi-ban" /> Limpiar</button>
+                        </div>
+                    </div>
 
+                    <Pagination CurrentPage="currentPage"
+                            TotalPages="totalPages"
+                            SelectedPage="SelectedPageAsync" />
 
-<div>
-    <Pagination CurrentPage="currentPage"
-                TotalPages="totalPages"
-                SelectedPage="SelectedPageAsync" />
-</div>
-
-<GenericList MyList="Categories">
-    <Body>
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th style="width:180px"></th>
-                    <th style="width:260px ">Categoria</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var category in Categories!)
-                {
-                    <tr>
-                        <td>
-                            <a href="/categories/edit/@category.Id"><img title="Editar" src="https://cdn.pixabay.com/photo/2017/06/06/00/33/edit-icon-2375785_1280.png" width="41" height="41" /></a>
-                            <a @onclick=@(() => DeleteAsync(category.Id))><img style="cursor:pointer;" title="Borrar" src="https://cdn-icons-png.flaticon.com/512/7347/7347206.png" width="41" height="41" /></a>
-                        </td>
-                        <td>
-                            @category.Name
-                        </td>
-                    </tr>
-                }
-            </tbody>
-        </table>
-    </Body>
-</GenericList>
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Categoría</th>
+                                <th style="width:200px"></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var category in Categories)
+                            {
+                                <tr>
+                                    <td>
+                                        @category.Name
+                                    </td>
+                                    <td>
+                                        <a @onclick=@(() => ShowModal(category.Id, true)) class="btn btn-warning"><i class="oi oi-pencil" /> Editar</a>
+                                        <button class="btn btn-danger" @onclick=@(() => DeleteAsync(category.Id))><i class="oi oi-trash" /> Borrar</button>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </Body>
+    </GenericList>
+   
+}
 
 @code {
     public List<Category>? Categories{ get; set; }
     private int currentPage = 1;
     private int totalPages;
+
+    [CascadingParameter]
+    IModalService Modal { get; set; } = default!;
 
     [Parameter]
     [SupplyParameterFromQuery]
@@ -70,6 +84,27 @@
     {
         await LoadAsync();
     }
+
+    private async Task ShowModal(int id = 0, bool isEdit = false)
+    {
+        IModalReference modalReference;
+
+        if (isEdit)
+        {
+            modalReference = Modal.Show<CategoryEdit>(string.Empty, new ModalParameters().Add("CategoryId", id));
+        }
+        else
+        {
+            modalReference = Modal.Show<CategoryCreate>();
+        }
+
+        var result = await modalReference.Result;
+        if (result.Confirmed)
+        {
+            await LoadAsync();
+        }
+    }
+
 
     private async Task LoadAsync(int page = 1)
     {
