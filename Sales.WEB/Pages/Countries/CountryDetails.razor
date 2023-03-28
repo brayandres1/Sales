@@ -106,11 +106,11 @@ else
 
         if (isEdit)
         {
-            modalReference = Modal.Show<StateEdit>(string.Empty, new ModalParameters().Add("StateId", id));
+            modalReference = Modal.Show<States.StateEdit>(string.Empty, new ModalParameters().Add("StateId", id));
         }
         else
         {
-            modalReference = Modal.Show<StateCreate>(string.Empty, new ModalParameters().Add("CountryId", id));
+            modalReference = Modal.Show<States.StateCreate>(string.Empty, new ModalParameters().Add("CountryId", id));
         }
 
         var result = await modalReference.Result;
