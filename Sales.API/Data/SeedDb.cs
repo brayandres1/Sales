@@ -12,12 +12,14 @@ namespace Sales.API.Data
         private readonly DataContext _context;
         private readonly IApiService _apiService;
         private readonly IUserHelper _userHelper;
+        private readonly IFileStorage _fileStorage;
 
-        public SeedDb(DataContext context, IApiService apiService, IUserHelper userHelper)
+        public SeedDb(DataContext context, IApiService apiService, IUserHelper userHelper, IFileStorage fileStorage)
         {
             _context = context;
             _apiService = apiService;
             _userHelper = userHelper;
+            _fileStorage = fileStorage;
         }
 
         public async Task SeedAsync()
@@ -26,9 +28,78 @@ namespace Sales.API.Data
             await CheckCountriesAsync();
             await CheckCategoriesAsync();
             await CheckRolesAsync();
-            await CheckUserAsync("1010", "Andres", "Velez", "avelez@yopmail.com", "3145777162", "Calle luna Carrera Sol", UserType.Admin);
+            await CheckUserAsync("1010", "Andres", "Velez", "avelez@yopmail.com", "3145777162", "Calle luna Carrera Sol", "andres.jpg", UserType.Admin); 
+            await CheckUserAsync("3030", "Axl", "Rose", "axl@yopmail.com", "322 311 4620", "Calle Luna Calle Sol", "AlxRose.jpg", UserType.User);
+            await CheckUserAsync("4040", "Megan", "Fox", "megan@yopmail.com", "322 311 4620", "Calle Luna Calle Sol", "MeganFox.jpg", UserType.User);
+            await CheckUserAsync("5050", "Bob", "Marley", "bob@yopmail.com", "322 311 4620", "Calle Luna Calle Sol", "bob.jpg", UserType.User);
+            await CheckProductsAsync();
         }
-        private async Task<User> CheckUserAsync(string document, string firstName, string lastName, string email, string phone, string address, UserType userType)
+
+        private async Task CheckProductsAsync()
+        {
+            if (!_context.Products.Any())
+            {
+                await AddProductAsync("Adidas Barracuda", 270000M, 12F, new List<string>() { "Calzado", "Deportes" }, new List<string>() { "adidas_barracuda.png" });
+                await AddProductAsync("Adidas Superstar", 250000M, 12F, new List<string>() { "Calzado", "Deportes" }, new List<string>() { "Adidas_superstar.png" });
+                await AddProductAsync("AirPods", 1300000M, 12F, new List<string>() { "Tecnología", "Apple" }, new List<string>() { "airpos.png", "airpos2.png" });
+                await AddProductAsync("Audifonos Bose", 870000M, 12F, new List<string>() { "Tecnología" }, new List<string>() { "audifonos_bose.png" });
+                await AddProductAsync("Bicicleta Ribble", 12000000M, 6F, new List<string>() { "Deportes" }, new List<string>() { "bicicleta_ribble.png" });
+                await AddProductAsync("Camisa Cuadros", 56000M, 24F, new List<string>() { "Ropa" }, new List<string>() { "camisa_cuadros.png" });
+                await AddProductAsync("Casco Bicicleta", 820000M, 12F, new List<string>() { "Deportes" }, new List<string>() { "casco_bicicleta.png", "casco.png" });
+                await AddProductAsync("iPad", 2300000M, 6F, new List<string>() { "Tecnología", "Apple" }, new List<string>() { "ipad.png" });
+                await AddProductAsync("iPhone 13", 5200000M, 6F, new List<string>() { "Tecnología", "Apple" }, new List<string>() { "iphone13.png", "iphone13b.png", "iphone13c.png", "iphone13d.png" });
+                await AddProductAsync("Mac Book Pro", 12100000M, 6F, new List<string>() { "Tecnología", "Apple" }, new List<string>() { "mac_book_pro.png" });
+                await AddProductAsync("Mancuernas", 370000M, 12F, new List<string>() { "Deportes" }, new List<string>() { "mancuernas.png" });
+                await AddProductAsync("Mascarilla Cara", 26000M, 100F, new List<string>() { "Belleza" }, new List<string>() { "mascarilla_cara.png" });
+                await AddProductAsync("New Balance 530", 180000M, 12F, new List<string>() { "Calzado", "Deportes" }, new List<string>() { "newbalance530.png" });
+                await AddProductAsync("New Balance 565", 179000M, 12F, new List<string>() { "Calzado", "Deportes" }, new List<string>() { "newbalance565.png" });
+                await AddProductAsync("Nike Air", 233000M, 12F, new List<string>() { "Calzado", "Deportes" }, new List<string>() { "nike_air.png" });
+                await AddProductAsync("Nike Zoom", 249900M, 12F, new List<string>() { "Calzado", "Deportes" }, new List<string>() { "nike_zoom.png" });
+                await AddProductAsync("Buso Adidas Mujer", 134000M, 12F, new List<string>() { "Ropa", "Deportes" }, new List<string>() { "buso_adidas.png" });
+                await AddProductAsync("Suplemento Boots Original", 15600M, 12F, new List<string>() { "Nutrición" }, new List<string>() { "Boost_Original.png" });
+                await AddProductAsync("Whey Protein", 252000M, 12F, new List<string>() { "Nutrición" }, new List<string>() { "whey_protein.png" });
+                await AddProductAsync("Arnes Mascota", 25000M, 12F, new List<string>() { "Mascotas" }, new List<string>() { "arnes_mascota.png" });
+                await AddProductAsync("Cama Mascota", 99000M, 12F, new List<string>() { "Mascotas" }, new List<string>() { "cama_mascota.png" });
+                await AddProductAsync("Teclado Gamer", 67000M, 12F, new List<string>() { "Gamer", "Tecnología" }, new List<string>() { "teclado_gamer.png" });
+                await AddProductAsync("Silla Gamer", 980000M, 12F, new List<string>() { "Gamer", "Tecnología" }, new List<string>() { "silla_gamer.png" });
+                await AddProductAsync("Mouse Gamer", 132000M, 12F, new List<string>() { "Gamer", "Tecnología" }, new List<string>() { "mouse_gamer.png" });
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        private async Task AddProductAsync(string name, decimal price, float stock, List<string> categories, List<string> images)
+        {
+            Product prodcut = new()
+            {
+                Description = name,
+                Name = name,
+                Price = price,
+                Stock = stock,
+                ProductCategories = new List<ProductCategory>(),
+                ProductImages = new List<ProductImage>()
+            };
+
+            foreach (var categoryName in categories)
+            {
+                var category = await _context.Categories.FirstOrDefaultAsync(c => c.Name == categoryName);
+                if (category != null)
+                {
+                    prodcut.ProductCategories.Add(new ProductCategory { Category = category });
+                }
+            }
+
+            foreach (string? image in images)
+            {
+                var filePath = $"{Environment.CurrentDirectory}\\Images\\products\\{image}";
+                var fileBytes = File.ReadAllBytes(filePath);
+                var imagePath = await _fileStorage.SaveFileAsync(fileBytes, "jpg", "products");
+                prodcut.ProductImages.Add(new ProductImage { Image = imagePath });
+            }
+
+            _context.Products.Add(prodcut);
+        }
+
+        private async Task<User> CheckUserAsync(string document, string firstName, string lastName, string email, string phone, string address,string image, UserType userType)
         {
             var user = await _userHelper.GetUserAsync(email);
             if (user == null)
@@ -38,6 +109,11 @@ namespace Sales.API.Data
                 {
                     city = await _context.Cities.FirstOrDefaultAsync();
                 }
+
+                var filePath = $"{Environment.CurrentDirectory}\\Images\\users\\{image}";
+                var fileBytes = File.ReadAllBytes(filePath);
+                var imagePath = await _fileStorage.SaveFileAsync(fileBytes, "jpg", "users");
+
 
                 user = new User
                 {
@@ -50,6 +126,7 @@ namespace Sales.API.Data
                     Document = document,
                     City = city,
                     UserType = userType,
+                    Photo = imagePath,
                 };
 
                 await _userHelper.AddUserAsync(user, "123456");
@@ -73,180 +150,24 @@ namespace Sales.API.Data
         {
             if (!_context.Categories.Any())
             {
-                _context.Categories.Add(new Category { Name = "Ropa" });
-                _context.Categories.Add(new Category { Name = "Accesorios" });
-                _context.Categories.Add(new Category { Name = "Televisores" });
-                _context.Categories.Add(new Category { Name = "Mercado" });
-                _context.Categories.Add(new Category { Name = "Celulares" });
-                _context.Categories.Add(new Category { Name = "Computadores" });
-                _context.Categories.Add(new Category { Name = "Lavadoras" });
-                _context.Categories.Add(new Category { Name = "Colchones" });
-                _context.Categories.Add(new Category { Name = "Horno" });
-                _context.Categories.Add(new Category { Name = "Gimnasio" });
-                _context.Categories.Add(new Category { Name = "Juguetes" });
-                _context.Categories.Add(new Category { Name = "Licores" });
+                _context.Categories.Add(new Category { Name = "Apple" });
+                _context.Categories.Add(new Category { Name = "Autos" });
+                _context.Categories.Add(new Category { Name = "Belleza" });
+                _context.Categories.Add(new Category { Name = "Calzado" });
+                _context.Categories.Add(new Category { Name = "Comida" });
+                _context.Categories.Add(new Category { Name = "Cosmeticos" });
+                _context.Categories.Add(new Category { Name = "Deportes" });
+                _context.Categories.Add(new Category { Name = "Erótica" });
+                _context.Categories.Add(new Category { Name = "Ferreteria" });
+                _context.Categories.Add(new Category { Name = "Gamer" });
                 _context.Categories.Add(new Category { Name = "Hogar" });
-                _context.Categories.Add(new Category { Name = "Consolas" });
-                _context.Categories.Add(new Category { Name = "Comedores" });
-                _context.Categories.Add(new Category { Name = "Escritorios" });
-                _context.Categories.Add(new Category { Name = "Accesorios de Baño" });
-                _context.Categories.Add(new Category { Name = "Accesorios de Cocina" });
-                _context.Categories.Add(new Category { Name = "Moda para mujeres" });
-                _context.Categories.Add(new Category { Name = "Moda para hombres" });
-                _context.Categories.Add(new Category { Name = "Moda para niños" });
-                _context.Categories.Add(new Category { Name = "Ropa de bebé" });
-                _context.Categories.Add(new Category { Name = "Ropa de maternidad" });
-                _context.Categories.Add(new Category { Name = "Zapatos para mujeres" });
-                _context.Categories.Add(new Category { Name = "Zapatos para hombres" });
-                _context.Categories.Add(new Category { Name = "Zapatos para niños" });
-                _context.Categories.Add(new Category { Name = "Joyería" });
-                _context.Categories.Add(new Category { Name = "Relojes" });
-                _context.Categories.Add(new Category { Name = "Accesorios para cabello" });
-                _context.Categories.Add(new Category { Name = "Bolsos y carteras" });
-                _context.Categories.Add(new Category { Name = "Lentes de sol" });
-                _context.Categories.Add(new Category { Name = "Ropa de baño para mujeres" });
-                _context.Categories.Add(new Category { Name = "Ropa de baño para hombres" });
-                _context.Categories.Add(new Category { Name = "Ropa deportiva para mujeres" });
-                _context.Categories.Add(new Category { Name = "Ropa deportiva para hombres" });
-                _context.Categories.Add(new Category { Name = "Ropa deportiva para niños" });
-                _context.Categories.Add(new Category { Name = "Ropa interior para mujeres" });
-                _context.Categories.Add(new Category { Name = "Ropa interior para hombres" });
-                _context.Categories.Add(new Category { Name = "Ropa interior para niños" });
-                _context.Categories.Add(new Category { Name = "Trajes de baño para niños" });
-                _context.Categories.Add(new Category { Name = "Ropa de dormir para mujeres" });
-                _context.Categories.Add(new Category { Name = "Ropa de dormir para hombres" });
-                _context.Categories.Add(new Category { Name = "Ropa de dormir para niños" });
-                _context.Categories.Add(new Category { Name = "Trajes de noche para mujeres" });
-                _context.Categories.Add(new Category { Name = "Trajes de noche para hombres" });
-                _context.Categories.Add(new Category { Name = "Vestidos para mujeres" });
-                _context.Categories.Add(new Category { Name = "Trajes para hombres" });
-                _context.Categories.Add(new Category { Name = "Trajes para mujeres" });
-                _context.Categories.Add(new Category { Name = "Trajes para niños" });
-                _context.Categories.Add(new Category { Name = "Vestidos para niñas" });
-                _context.Categories.Add(new Category { Name = "Pantalones para mujeres" });
-                _context.Categories.Add(new Category { Name = "Pantalones para hombres" });
-                _context.Categories.Add(new Category { Name = "Pantalones para niños" });
-                _context.Categories.Add(new Category { Name = "Faldas para mujeres" });
-                _context.Categories.Add(new Category { Name = "Faldas para niñas" });
-                _context.Categories.Add(new Category { Name = "Camisas para mujeres" });
-                _context.Categories.Add(new Category { Name = "Camisas para hombres" });
-                _context.Categories.Add(new Category { Name = "Camisas para niños" });
-                _context.Categories.Add(new Category { Name = "Sudaderas con capucha para mujeres" });
-                _context.Categories.Add(new Category { Name = "Sudaderas con capucha para hombres" });
-                _context.Categories.Add(new Category { Name = "Sudaderas con capucha para niños" });
-                _context.Categories.Add(new Category { Name = "Chaquetas para mujeres" });
-                _context.Categories.Add(new Category { Name = "Chaquetas para hombres" });
-                _context.Categories.Add(new Category { Name = "Chaquetas para niños" });
-                _context.Categories.Add(new Category { Name = "Abrigos para mujeres" });
-                _context.Categories.Add(new Category { Name = "Abrigos para hombres" });
-                _context.Categories.Add(new Category { Name = "Abrigos para niños" });
-                _context.Categories.Add(new Category { Name = "Calcetines para mujeres" });
-                _context.Categories.Add(new Category { Name = "Calcetines para hombres" });
-                _context.Categories.Add(new Category { Name = "Calcetines para niños" });
-                _context.Categories.Add(new Category { Name = "Ropa de tallas grandes para mujeres" });
-                _context.Categories.Add(new Category { Name = "Ropa de tallas grandes para hombres" });
-                _context.Categories.Add(new Category { Name = "Ropa de tallas grandes para niños" });
-                _context.Categories.Add(new Category { Name = "Ropa para personas con discapacidad" });
-                _context.Categories.Add(new Category { Name = "Trajes de baño para personas con discapacidad" });
-                _context.Categories.Add(new Category { Name = "Ropa de seguridad para trabajadores" });
-                _context.Categories.Add(new Category { Name = "Ropa para actividades al aire libre" });
-                _context.Categories.Add(new Category { Name = "Ropa para deportes de invierno" });
-                _context.Categories.Add(new Category { Name = "Ropa para deportes acuáticos" });
-                _context.Categories.Add(new Category { Name = "Ropa para correr" });
-                _context.Categories.Add(new Category { Name = "Ropa para yoga" });
-                _context.Categories.Add(new Category { Name = "Ropa para ciclismo" });
-                _context.Categories.Add(new Category { Name = "Ropa para escalada" });
-                _context.Categories.Add(new Category { Name = "Ropa para pesca" });
-                _context.Categories.Add(new Category { Name = "Ropa para caza" });
-                _context.Categories.Add(new Category { Name = "Ropa para golf" });
-                _context.Categories.Add(new Category { Name = "Ropa para tenis" });
-                _context.Categories.Add(new Category { Name = "Ropa para natación" });
-                _context.Categories.Add(new Category { Name = "Ropa para esquí" });
-                _context.Categories.Add(new Category { Name = "Ropa para snowboard" });
-                _context.Categories.Add(new Category { Name = "Ropa para patinaje" });
-                _context.Categories.Add(new Category { Name = "Ropa para skateboarding" });
-                _context.Categories.Add(new Category { Name = "Ropa para deportes de equipo" });
-                _context.Categories.Add(new Category { Name = "Ropa para actividades al aire libre para niños" });
-                _context.Categories.Add(new Category { Name = "Ropa para deportes de invierno para niños" });
-                _context.Categories.Add(new Category { Name = "Ropa para deportes acuáticos para niños" });
-                _context.Categories.Add(new Category { Name = "Ropa para correr para niños" });
-                _context.Categories.Add(new Category { Name = "Ropa para yoga para niños" });
-                _context.Categories.Add(new Category { Name = "Ropa para ciclismo para niños" });
-                _context.Categories.Add(new Category { Name = "Ropa para escalada para niños" });
-                _context.Categories.Add(new Category { Name = "Ropa para pesca para niños" });
-                _context.Categories.Add(new Category { Name = "Ropa para caza para niños" });
-                _context.Categories.Add(new Category { Name = "Ropa para golf para niños" });
-                _context.Categories.Add(new Category { Name = "Ropa para tenis para niños" });
-                _context.Categories.Add(new Category { Name = "Electrónica" });
-                _context.Categories.Add(new Category { Name = "Computadoras y accesorios" });
-                _context.Categories.Add(new Category { Name = "Teléfonos móviles y accesorios" });
-                _context.Categories.Add(new Category { Name = "Hogar y jardín" });
-                _context.Categories.Add(new Category { Name = "Ropa y accesorios de moda" });
-                _context.Categories.Add(new Category { Name = "Zapatos y accesorios" });
-                _context.Categories.Add(new Category { Name = "Joyería y relojes" });
-                _context.Categories.Add(new Category { Name = "Salud y belleza" });
-                _context.Categories.Add(new Category { Name = "Juguetes y juegos" });
-                _context.Categories.Add(new Category { Name = "Automóviles y motocicletas" });
-                _context.Categories.Add(new Category { Name = "Deportes y entretenimiento" });
+                _context.Categories.Add(new Category { Name = "Jardín" });
+                _context.Categories.Add(new Category { Name = "Jugetes" });
+                _context.Categories.Add(new Category { Name = "Lenceria" });
                 _context.Categories.Add(new Category { Name = "Mascotas" });
-                _context.Categories.Add(new Category { Name = "Alimentos y bebidas" });
-                _context.Categories.Add(new Category { Name = "Arte y artesanía" });
-                _context.Categories.Add(new Category { Name = "Muebles y decoración del hogar" });
-                _context.Categories.Add(new Category { Name = "Libros y revistas" });
-                _context.Categories.Add(new Category { Name = "Instrumentos musicales" });
-                _context.Categories.Add(new Category { Name = "Cámaras y fotografía" });
-                _context.Categories.Add(new Category { Name = "Equipos de oficina" });
-                _context.Categories.Add(new Category { Name = "Suministros de oficina" });
-                _context.Categories.Add(new Category { Name = "Cuidado personal y productos de higiene" });
-                _context.Categories.Add(new Category { Name = "Suministros de limpieza y mantenimiento del hogar" });
-                _context.Categories.Add(new Category { Name = "Suministros médicos" });
-                _context.Categories.Add(new Category { Name = "Suministros de arte y dibujo" });
-                _context.Categories.Add(new Category { Name = "Suministros de manualidades" });
-                _context.Categories.Add(new Category { Name = "Suministros para fiestas y eventos" });
-                _context.Categories.Add(new Category { Name = "Suministros para mascotas" });
-                _context.Categories.Add(new Category { Name = "Suministros para acuarios y terrarios" });
-                _context.Categories.Add(new Category { Name = "Suministros para jardinería" });
-                _context.Categories.Add(new Category { Name = "Suministros para bricolaje" });
-                _context.Categories.Add(new Category { Name = "Suministros para impresoras y cartuchos de tinta" });
-                _context.Categories.Add(new Category { Name = "Suministros para muebles y reparación del hogar" });
-                _context.Categories.Add(new Category { Name = "Suministros para construcción y herramientas" });
-                _context.Categories.Add(new Category { Name = "Suministros para iluminación y electricidad" });
-                _context.Categories.Add(new Category { Name = "Suministros para baño y cocina" });
-                _context.Categories.Add(new Category { Name = "Suministros para camping y senderismo" });
-                _context.Categories.Add(new Category { Name = "Suministros para deportes acuáticos" });
-                _context.Categories.Add(new Category { Name = "Suministros para pesca" });
-                _context.Categories.Add(new Category { Name = "Suministros para caza" });
-                _context.Categories.Add(new Category { Name = "Suministros para equitación" });
-                _context.Categories.Add(new Category { Name = "Suministros para deportes de nieve" });
-                _context.Categories.Add(new Category { Name = "Suministros para deportes de invierno" });
-                _context.Categories.Add(new Category { Name = "Suministros para deportes de raqueta" });
-                _context.Categories.Add(new Category { Name = "Suministros para deportes de pelota" });
-                _context.Categories.Add(new Category { Name = "Suministros para artes marciales" });
-                _context.Categories.Add(new Category { Name = "Suministros para gimnasia y entrenamiento" });
-                _context.Categories.Add(new Category { Name = "Suministros para yoga y pilates" });
-                _context.Categories.Add(new Category { Name = "Suministros para fitness y musculación" });
-                _context.Categories.Add(new Category { Name = "Suministros para carreras y maratones" });
-                _context.Categories.Add(new Category { Name = "Suministros para golf" });
-                _context.Categories.Add(new Category { Name = "Suministros para ciclismo" });
-                _context.Categories.Add(new Category { Name = "Suministros para patinaje" });
-                _context.Categories.Add(new Category { Name = "Suministros para skateboarding" });
-                _context.Categories.Add(new Category { Name = "Suministros para surf y bodyboard" });
-                _context.Categories.Add(new Category { Name = "Suministros para windsurf y kitesurf" });
-                _context.Categories.Add(new Category { Name = "Suministros para buceo y submarinismo" });
-                _context.Categories.Add(new Category { Name = "Suministros para esquí acuático y wakeboarding" });
-                _context.Categories.Add(new Category { Name = "Suministros para parapente y ala delta" });
-                _context.Categories.Add(new Category { Name = "Suministros para vuelo libre y paracaidismo" });
-                _context.Categories.Add(new Category { Name = "Suministros para escalada y senderismo en montaña" });
-                _context.Categories.Add(new Category { Name = "Suministros para camping y actividades al aire libre" });
-                _context.Categories.Add(new Category { Name = "Suministros para equipos y uniformes deportivos" });
-                _context.Categories.Add(new Category { Name = "Suministros para entrenamiento de fuerza y resistencia" });
-                _context.Categories.Add(new Category { Name = "Suministros para deportes de contacto" });
-                _context.Categories.Add(new Category { Name = "Suministros para entrenamiento de artes marciales" });
-                _context.Categories.Add(new Category { Name = "Suministros para deportes de precisión" });
-                _context.Categories.Add(new Category { Name = "Suministros para deportes de tiro" });
-                _context.Categories.Add(new Category { Name = "Suministros para deportes acuáticos de velocidad" });
-
-
+                _context.Categories.Add(new Category { Name = "Nutrición" });
+                _context.Categories.Add(new Category { Name = "Ropa" });
+                _context.Categories.Add(new Category { Name = "Tecnología" });
                 await _context.SaveChangesAsync();
             }
         }
